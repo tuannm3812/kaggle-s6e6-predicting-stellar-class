@@ -1,0 +1,30 @@
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# IDE configs
+.vscode/
+.idea/
+
+# OS specific files
+.DS_Store
+
+# Large Kaggle data files
+data/train.csv
+data/test.csv
+data/sample_submission.csv
+data/*.zip
+
+# Model predictions & OOF files
+predictions/
+submission.csv
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

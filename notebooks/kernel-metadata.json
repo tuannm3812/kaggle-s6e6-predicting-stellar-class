@@ -1,0 +1,18 @@
+{
+  "id": "tuannm3812/stellar-classification-optimization-ensemble",
+  "title": "Stellar Classification - Optimization & Ensemble",
+  "code_file": "03_model_tuning_and_ensemble.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": false,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": [],
+  "competition_sources": [
+    "playground-series-s6e6"
+  ],
+  "kernel_sources": [
+    "tuannm3812/stellar-classification-baseline-modeling"
+  ]
+}

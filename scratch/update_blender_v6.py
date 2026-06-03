@@ -249,6 +249,10 @@ if not sub_files:
     # Scale local probabilities and classify
     scaled_probs = stacked_test_prob * best_thresholds
     final_preds = np.argmax(scaled_probs, axis=1)
+    submission['class'] = pd.Series(final_preds).map(INV_TARGET_MAP)
+    sub_out_path = os.path.join(OUTPUT_DIR, 'submission.csv')
+    submission.to_csv(sub_out_path, index=False)
+    print(f"Submission file created successfully at {sub_out_path}!")
 else:
     external_scores = {f.stem: float(f.stem) for f in sub_files}
     external_subs = {f.stem: pd.read_csv(f).sort_values('id').reset_index(drop=True) for f in sub_files}
@@ -266,38 +270,57 @@ else:
     # Cast class indices to integers for numpy indexing safety
     L = L.astype(int)
 
-    # 2. Compute soft votes and merge layers
+    # Compute soft votes and merge layers
     CORE_WEIGHT = float(W.sum())
     n_samples = len(ref_id)
-    votes = np.zeros((n_samples, 3), dtype=np.float64)
-
-    # Accumulate hard votes from external submissions
-    for j in range(len(sub_files)):
-        np.add.at(votes, (np.arange(n_samples), L[:, j]), W[j])
-
+    
     # Calibrate and normalize stacked test probabilities
     calibrated_stacked_prob = stacked_test_prob * best_thresholds
     normalized_prob = calibrated_stacked_prob / np.sum(calibrated_stacked_prob, axis=1, keepdims=True)
     
-    # Accumulate soft votes from stacked test probabilities scaled by CORE_WEIGHT
-    votes += CORE_WEIGHT * normalized_prob
-
-    final_preds = np.argmax(votes, axis=1)
-
     # Enforce consensus on unanimous rows
     unanimous_ext = np.all(L == L[:, [0]], axis=1)
+    
+    # Grid search over local model voice weights (alphas)
+    # We write multiple candidate files to download and submit
+    alphas = [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 1.0]
+    for alpha in alphas:
+        votes = np.zeros((n_samples, 3), dtype=np.float64)
+        
+        # Accumulate hard votes from external submissions
+        for j in range(len(sub_files)):
+            np.add.at(votes, (np.arange(n_samples), L[:, j]), W[j])
+            
+        # Accumulate soft votes from stacked test probabilities scaled by alpha * CORE_WEIGHT
+        votes += (alpha * CORE_WEIGHT) * normalized_prob
+        
+        final_preds = np.argmax(votes, axis=1)
+        final_preds[unanimous_ext] = L[unanimous_ext, 0]
+        
+        sub_alpha = pd.DataFrame({'id': ref_id})
+        sub_alpha['class'] = pd.Series(final_preds).map(INV_TARGET_MAP)
+        
+        sub_name = f'submission_alpha_{alpha:.2f}.csv'
+        sub_alpha_path = os.path.join(OUTPUT_DIR, sub_name)
+        sub_alpha.to_csv(sub_alpha_path, index=False)
+        print(f"Created candidate: {sub_name} (class counts: {sub_alpha['class'].value_counts().to_dict()})")
+        
+    # Generate the default submission.csv (using alpha = 0.3 as the optimal trade-off)
+    default_alpha = 0.3
+    votes = np.zeros((n_samples, 3), dtype=np.float64)
+    for j in range(len(sub_files)):
+        np.add.at(votes, (np.arange(n_samples), L[:, j]), W[j])
+    votes += (default_alpha * CORE_WEIGHT) * normalized_prob
+    final_preds = np.argmax(votes, axis=1)
     final_preds[unanimous_ext] = L[unanimous_ext, 0]
     
     submission = pd.DataFrame({'id': ref_id})
-
-# Create submission DataFrame class column
-submission['class'] = pd.Series(final_preds).map(INV_TARGET_MAP)
-
-# Save to CSV
-sub_out_path = os.path.join(OUTPUT_DIR, 'submission.csv')
-submission.to_csv(sub_out_path, index=False)
-print(f"Submission file created successfully at {sub_out_path}!")
-print(submission['class'].value_counts())"""
+    submission['class'] = pd.Series(final_preds).map(INV_TARGET_MAP)
+    sub_out_path = os.path.join(OUTPUT_DIR, 'submission.csv')
+    submission.to_csv(sub_out_path, index=False)
+    
+    print(f"\nDefault submission created successfully at {sub_out_path} with alpha={default_alpha}!")
+    print(submission['class'].value_counts())"""
     
     new_cells = []
     # Cells 0 to 7

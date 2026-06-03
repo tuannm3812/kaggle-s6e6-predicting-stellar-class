@@ -36,7 +36,7 @@ def update_ensemble_blender_v6():
     # Cell 0 (Title & Intro)
     cell_0_source = r"""# Stellar Classification: Stacked Ensembling & Stacking-Assisted Blender
 
-This notebook executes prediction ensembling by combining a class-balanced Logistic Regression stacking meta-learner with high-scoring external submissions using a hybrid voting blender. Decision boundaries are tuned using Nelder-Mead optimization on out-of-fold predictions."""
+This notebook executes prediction ensembling by combining a class-balanced Logistic Regression stacking meta-learner with high-scoring external submissions from the public dataset **[flexonafft/stellar-data](https://www.kaggle.com/datasets/flexonafft/stellar-data)** (contributed by Kaggle user *flexonafft*) using a hybrid voting blender. Decision boundaries are tuned using Nelder-Mead optimization on out-of-fold predictions."""
     cells[0]["source"] = format_source(cell_0_source)
     
     # Cell 1 (Imports)
@@ -77,6 +77,17 @@ print(f"Predictions Directory: {PRED_DIR}")
 print(f"Submissions Directory: {SUBS_DIR}")
 print(f"Output Directory: {OUTPUT_DIR}")"""
     cells[3]["source"] = format_source(cell_3_source)
+    
+    # Cell 7 (Individual baseline scores print code)
+    cell_7_source = r"""lgb_score = balanced_accuracy_score(y, np.argmax(lgb_oof, axis=1))
+xgb_score = balanced_accuracy_score(y, np.argmax(xgb_oof, axis=1))
+cat_score = balanced_accuracy_score(y, np.argmax(cat_oof, axis=1))
+
+print("Individual Model Scores (Balanced Accuracy):")
+print(f"LightGBM: {lgb_score:.5f}")
+print(f"XGBoost:  {xgb_score:.5f}")
+print(f"CatBoost: {cat_score:.5f}")"""
+    cells[7]["source"] = format_source(cell_7_source)
     
     # Injected disagreement cells (placed after cell 7)
     disagreement_md = {
@@ -170,7 +181,7 @@ meta_model = LogisticRegression(max_iter=2000, C=1.0, class_weight='balanced', r
 skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
 # Generate leakage-free OOF stacked predictions
-print("--- Training Stacking Meta-Learner ---")
+print("Training Stacking Meta-Learner...")
 meta_oof = cross_val_predict(meta_model, Xoof, y, cv=skf, method='predict_proba')
 
 # Evaluate Meta-Learner OOF Balanced Accuracy
@@ -198,7 +209,7 @@ Standard inference assigns classes using $\arg\max(P_c)$. However, when optimizi
     best_score = -res.fun
     return best_weights, best_score, res.success, res.message
 
-print("--- Optimizing Decision Thresholds over Stacked Predictions ---")
+print("Optimizing Decision Thresholds over Stacked Predictions...")
 best_thresholds, optimized_score, opt_success, opt_msg = optimize_thresholds(meta_oof, y)
 if not opt_success:
     print(f"Warning: Nelder-Mead threshold optimization did not converge: {opt_msg}")
@@ -207,12 +218,12 @@ t_gal, t_qso, t_star = best_thresholds
 
 print(f"Original Stacking Score: {stacked_score:.5f}")
 print(f"Optimized Stacking Score: {optimized_score:.5f}")
-print(f"Optimal Multipliers -> GALAXY: {t_gal:.4f}, QSO: {t_qso:.4f}, STAR: {t_star:.4f}")"""
+print(f"Optimal Multipliers: GALAXY: {t_gal:.4f}, QSO: {t_qso:.4f}, STAR: {t_star:.4f}")"""
     
     cell_12_source = r"""## 5. Final Inference & Submission
 
 ### 5.1. Stacking-Assisted Blender
-We combine our stacked probabilities with 5 external high-scoring submissions. Unanimous rows are kept; disagreement rows are decided by the sum of external weights plus our stacked probabilities weighted by the panel sum, scaled by tuned decision thresholds.
+We combine our stacked probabilities with 5 external high-scoring submissions (utilizing the [flexonafft/stellar-data](https://www.kaggle.com/datasets/flexonafft/stellar-data) dataset). Unanimous rows are kept; disagreement rows are decided by the sum of external weights plus our stacked probabilities weighted by the panel sum, scaled by tuned decision thresholds.
 
 ### 5.2. Generate Submission File
 We save the class predictions to `submission.csv` using the inverse target mapping, formatting the output for final leaderboard submission."""

@@ -283,7 +283,7 @@ else:
     
     # Grid search over local model voice weights (alphas)
     # We write multiple candidate files to download and submit
-    alphas = [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 1.0]
+    alphas = [0.0, 0.20, 0.22, 0.24, 0.25, 0.26, 0.28, 0.30, 0.35, 0.45, 0.50, 0.55, 0.60]
     for alpha in alphas:
         votes = np.zeros((n_samples, 3), dtype=np.float64)
         
@@ -305,8 +305,8 @@ else:
         sub_alpha.to_csv(sub_alpha_path, index=False)
         print(f"Created candidate: {sub_name} (class counts: {sub_alpha['class'].value_counts().to_dict()})")
         
-    # Generate the default submission.csv (using alpha = 0.3 as the optimal trade-off)
-    default_alpha = 0.3
+    # Generate the default submission.csv (using alpha = 0.24 as the optimal trade-off)
+    default_alpha = 0.24
     votes = np.zeros((n_samples, 3), dtype=np.float64)
     for j in range(len(sub_files)):
         np.add.at(votes, (np.arange(n_samples), L[:, j]), W[j])

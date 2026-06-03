@@ -45,11 +45,14 @@ import pandas as pd
 from sklearn.metrics import balanced_accuracy_score
 import os
 from pathlib import Path
+import warnings
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_predict, StratifiedKFold
 from scipy.optimize import minimize
+
+warnings.filterwarnings('ignore', category=FutureWarning)
 
 # Target mapping variables
 TARGET_MAP = {'GALAXY': 0, 'QSO': 1, 'STAR': 2}
@@ -66,7 +69,7 @@ if os.path.exists('/kaggle/input/competitions/playground-series-s6e6'):
 else:
     DATA_DIR = '../data'
     PRED_DIR = '../predictions'
-    SUBS_DIR = Path('scratch/external/submissions')
+    SUBS_DIR = Path('../scratch/external/submissions')
     OUTPUT_DIR = '..'
 
 print(f"Data Directory: {DATA_DIR}")
@@ -239,10 +242,12 @@ else:
     external_scores = {f.stem: float(f.stem) for f in sub_files}
     external_subs = {f.stem: pd.read_csv(f).sort_values('id').reset_index(drop=True) for f in sub_files}
 
-    # Verify ID alignment across all external submissions before ensembling
+    # Verify ID and class label validity across all external submissions before ensembling
     ref_id = external_subs[sub_files[0].stem]['id'].values
     for name, df in external_subs.items():
         assert np.array_equal(df['id'].values, ref_id), f"{name}: id mismatch"
+        invalid_classes = df[~df['class'].isin(TARGET_MAP.keys())]['class'].unique()
+        assert len(invalid_classes) == 0, f"{name} contains invalid classes: {invalid_classes}"
 
     L = np.column_stack([external_subs[name]['class'].map(TARGET_MAP).values for name in external_scores])
     W = np.array([external_scores[name] for name in external_scores])

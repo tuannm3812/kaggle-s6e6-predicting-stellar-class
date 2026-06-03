@@ -8,7 +8,9 @@
   "enable_gpu": false,
   "enable_tpu": false,
   "enable_internet": true,
-  "dataset_sources": [],
+  "dataset_sources": [
+    "flexonafft/stellar-data"
+  ],
   "competition_sources": [
     "playground-series-s6e6"
   ],

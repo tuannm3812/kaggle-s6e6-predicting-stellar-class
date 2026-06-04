@@ -1,20 +1,18 @@
 {
-  "id": "tuannm3812/stellar-classification-optimization-ensemble",
-  "title": "Stellar Classification - Optimization & Ensemble",
-  "code_file": "03_model_tuning_and_ensemble.ipynb",
+  "id": "tuannm3812/stellar-classification-baseline-modeling",
+  "title": "Stellar Classification - Baseline Modeling",
+  "code_file": "02_baseline_modeling.ipynb",
   "language": "python",
   "kernel_type": "notebook",
   "is_private": false,
   "enable_gpu": false,
   "enable_tpu": false,
   "enable_internet": true,
-  "dataset_sources": [
-    "flexonafft/stellar-data"
-  ],
+  "dataset_sources": [],
   "competition_sources": [
     "playground-series-s6e6"
   ],
   "kernel_sources": [
-    "tuannm3812/stellar-classification-baseline-modeling"
+    "tuannm3823/stellar-classification-hyperparameter-tuning"
   ]
 }

@@ -1,0 +1,144 @@
+import json
+
+def create_notebook():
+    notebook = {
+        "cells": [
+            {
+                "cell_type": "markdown",
+                "id": "title",
+                "metadata": {},
+                "source": [
+                    "# Stellar Classification - Hyperparameter Tuning\n",
+                    "\n",
+                    "This notebook executes Optuna hyperparameter search on a 20% stratified sample of the training dataset using 3-Fold Stratified CV."
+                ]
+            },
+            {
+                "cell_type": "code",
+                "execution_count": None,
+                "id": "imports",
+                "metadata": {},
+                "outputs": [],
+                "source": [
+                    "import os\n",
+                    "import numpy as np\n",
+                    "import pandas as pd\n",
+                    "import optuna\n",
+                    "import json\n",
+                    "from sklearn.model_selection import StratifiedKFold\n",
+                    "from sklearn.metrics import balanced_accuracy_score\n",
+                    "from sklearn.utils.class_weight import compute_sample_weight\n",
+                    "import lightgbm as lgb\n",
+                    "import xgboost as xgb\n",
+                    "from catboost import CatBoostClassifier\n",
+                    "import warnings\n",
+                    "warnings.filterwarnings('ignore')"
+                ]
+            },
+            {
+                "cell_type": "code",
+                "execution_count": None,
+                "id": "data_loading",
+                "metadata": {},
+                "outputs": [],
+                "source": [
+                    "if os.path.exists('/kaggle/input/competitions/playground-series-s6e6'):\n",
+                    "    DATA_DIR = '/kaggle/input/competitions/playground-series-s6e6'\n",
+                    "    OUTPUT_DIR = '.'\n",
+                    "else:\n",
+                    "    DATA_DIR = '../data'\n",
+                    "    OUTPUT_DIR = '..'\n",
+                    "\n",
+                    "TARGET_MAP = {'GALAXY': 0, 'QSO': 1, 'STAR': 2}\n",
+                    "SPECTRAL_MAP = {'M': 0, 'A/F': 1, 'G/K': 2, 'O/B': 3}\n",
+                    "GALAXY_POP_MAP = {'Red_Sequence': 0, 'Blue_Cloud': 1}\n",
+                    "\n",
+                    "train_raw = pd.read_csv(os.path.join(DATA_DIR, 'train.csv'))\n",
+                    "\n",
+                    "def feature_engineering(df):\n",
+                    "    df = df.copy()\n",
+                    "    df['spectral_type_code'] = df['spectral_type'].map(SPECTRAL_MAP).fillna(-1).astype(int)\n",
+                    "    df['galaxy_pop_code'] = df['galaxy_population'].map(GALAXY_POP_MAP).fillna(-1).astype(int)\n",
+                    "    df['u_g'] = df['u'] - df['g']\n",
+                    "    df['g_r'] = df['g'] - df['r']\n",
+                    "    df['r_i'] = df['r'] - df['i']\n",
+                    "    df['i_z'] = df['i'] - df['z']\n",
+                    "    df['u_r'] = df['u'] - df['r']\n",
+                    "    df['g_i'] = df['g'] - df['i']\n",
+                    "    df['r_z'] = df['r'] - df['z']\n",
+                    "    df['u_i'] = df['u'] - df['i']\n",
+                    "    df['g_z'] = df['g'] - df['z']\n",
+                    "    df['u_z'] = df['u'] - df['z']\n",
+                    "    df['stellar_color_bin'] = pd.cut(df['g_r'], bins=[-np.inf, 0.0, 0.4, 0.8, 1.2, np.inf], labels=[0, 1, 2, 3, 4]).fillna(2).astype(int)\n",
+                    "    \n",
+                    "    alpha_rad = np.radians(df['alpha'])\n",
+                    "    delta_rad = np.radians(df['delta'])\n",
+                    "    df['coord_x'] = np.cos(delta_rad) * np.cos(alpha_rad)\n",
+                    "    df['coord_y'] = np.cos(delta_rad) * np.sin(alpha_rad)\n",
+                    "    df['coord_z'] = np.sin(delta_rad)\n",
+                    "    df['coord_x_redshift'] = df['redshift'] * df['coord_x']\n",
+                    "    df['coord_y_redshift'] = df['redshift'] * df['coord_y']\n",
+                    "    df['coord_z_redshift'] = df['redshift'] * df['coord_z']\n",
+                    "    \n",
+                    "    # Galactic Coordinates\n",
+                    "    x_gal = -0.05487554 * df['coord_x'] - 0.87343710 * df['coord_y'] - 0.48383499 * df['coord_z']\n",
+                    "    y_gal = 0.49410945 * df['coord_x'] - 0.44482959 * df['coord_y'] + 0.74698225 * df['coord_z']\n",
+                    "    z_gal = -0.86766614 * df['coord_x'] - 0.19807639 * df['coord_y'] + 0.45598380 * df['coord_z']\n",
+                    "    df['gal_x'] = x_gal\n",
+                    "    df['gal_y'] = y_gal\n",
+                    "    df['gal_z'] = z_gal\n",
+                    "    df['gal_l'] = np.degrees(np.arctan2(y_gal, x_gal)) % 360\n",
+                    "    df['gal_b'] = np.degrees(np.arcsin(z_gal))\n",
+                    "    \n",
+                    "    # Redshift interactions\n",
+                    "    df['u_g_redshift'] = df['u_g'] * df['redshift']\n",
+                    "    df['g_r_redshift'] = df['g_r'] * df['redshift']\n",
+                    "    df['r_i_redshift'] = df['r_i'] * df['redshift']\n",
+                    "    df['i_z_redshift'] = df['i_z'] * df['redshift']\n",
+                    "    df['u_r_redshift'] = df['u_r'] * df['redshift']\n",
+                    "    df['g_i_redshift'] = df['g_i'] * df['redshift']\n",
+                    "    df['r_z_redshift'] = df['r_z'] * df['redshift']\n",
+                    "    df['u_i_redshift'] = df['u_i'] * df['redshift']\n",
+                    "    df['g_z_redshift'] = df['g_z'] * df['redshift']\n",
+                    "    df['u_z_redshift'] = df['u_z'] * df['redshift']\n",
+                    "    \n",
+                    "    # Curvature\n",
+                    "    df['ug_gr'] = df['u_g'] - df['g_r']\n",
+                    "    df['ug_ri'] = df['u_g'] - df['r_i']\n",
+                    "    df['ug_iz'] = df['u_g'] - df['i_z']\n",
+                    "    df['gr_ri'] = df['g_r'] - df['r_i']\n",
+                    "    df['gr_iz'] = df['g_r'] - df['i_z']\n",
+                    "    df['ri_iz'] = df['r_i'] - df['i_z']\n",
+                    "    \n",
+                    "    cols_to_drop = ['id', 'spectral_type', 'galaxy_population']\n",
+                    "    return df.drop(columns=[col for col in cols_to_drop if col in df.columns])\n",
+                    "\n",
+                    "X_full = feature_engineering(train_raw)\n",
+                    "y_full = X_full.pop('class').map(TARGET_MAP).values\n",
+                    "\n",
+                    "# Extract 20% Stratified Subset\n",
+                    "SEED = 42\n",
+                    "skf_sub = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)\n",
+                    "_, sub_idx = next(skf_sub.split(X_full, y_full))\n",
+                    "X = X_full.iloc[sub_idx].reset_index(drop=True)\n",
+                    "y = y_full[sub_idx]\n",
+                    "print(f\"Tuning Subset Shape: {X.shape}\")"
+                ]
+            }
+        ],
+        "metadata": {
+            "kernelspec": {
+                "display_name": "Python 3",
+                "language": "python",
+                "name": "python3"
+            }
+        },
+        "nbformat": 4,
+        "nbformat_minor": 5
+    }
+    with open("notebooks/04_hyperparameter_tuning.ipynb", "w", encoding="utf-8") as f:
+        json.dump(notebook, f, indent=1)
+    print("Created notebooks/04_hyperparameter_tuning.ipynb base.")
+
+if __name__ == "__main__":
+    create_notebook()

@@ -22,14 +22,19 @@ In alignment with workflow portability, the repository uses a **notebook-centric
 ├── requirements.txt           # Python dependencies
 ├── .gitignore                 # Configured to exclude prediction dumps and venv/
 ├── docs/                      # Strategic writeups & coding guidelines
-│   ├── coding_standards.md    # Code styling and formatting rules (PEP 8, Viridis)
-│   ├── 1_instructions.md      # Rules and metric evaluations
-│   └── superpowers/           # Design specifications and implementation plans
+│   ├── 0_coding_standards.md  # Code styling and formatting rules (PEP 8, Viridis)
+│   ├── 1_instructions.md      # Rules, metrics, and Kaggle account management details
+│   ├── 2_eda_insights.md      # Redshift physics, coordinates, and color indices
+│   ├── 3_baseline_modeling.md # CV setup and comparison of tuned GBDT & tree models
+│   ├── 4_model_optimization_and_ensemble.md # Stacking, calibration, and hybrid blending
+│   └── 5_implementation_plan.md # Strategical implementation roadmap
 └── notebooks/                 # Self-contained executable notebooks
     ├── 01_eda.ipynb           # Deep-dive exploratory data analysis
-    ├── 02_baseline_modeling.ipynb  # 5-fold Stratified CV baseline training
-    └── 03_model_tuning_and_ensemble.ipynb # Weight optimization & submission generation
+    ├── 02_baseline_modeling.ipynb # 5-fold Stratified CV baseline training
+    ├── 03_model_tuning_and_ensemble.ipynb # Stacking, threshold tuning, and ensembling
+    └── 04_hyperparameter_tuning.ipynb # Optuna hyperparameter optimization searches
 ```
+
 
 ---
 

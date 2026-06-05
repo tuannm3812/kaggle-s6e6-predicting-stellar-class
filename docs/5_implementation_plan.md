@@ -2,7 +2,7 @@
 
 This document outlines the end-to-end plan to solve the Predicting Stellar Class competition. The objective is to predict the `class` of astronomical objects (`GALAXY`, `STAR`, or `QSO`) based on photometrical and positional data. The competition uses **Balanced Accuracy** as the evaluation metric.
 
-In alignment with your project standards, this workflow will follow a notebook-first exploration paired with structured documentation in `docs/`, clean coding standards, and visual consistency using the `Viridis` palette.
+In alignment with your project standards, this workflow follows a notebook-first exploration paired with structured documentation in `docs/`, clean coding standards, and visual consistency using the `Viridis` palette.
 
 ---
 
@@ -40,16 +40,17 @@ We will organize the repository as follows:
 ├── .gitignore                 # Excluded directories (data/, predictions/, venv/)
 ├── data/                      # Local data (train.csv, test.csv, sample_submission.csv)
 ├── docs/                      # Markdown documentation of findings and decisions
-│   ├── coding_standards.md    # Repository coding guidelines
-│   ├── 1_instructions.md      # Competition rules and instructions
+│   ├── 0_coding_standards.md  # Repository coding guidelines
+│   ├── 1_instructions.md      # Competition rules, instructions, and account details
 │   ├── 2_eda_insights.md      # Data quality, target behavior, and features analysis
 │   ├── 3_baseline_modeling.md # CV setup and comparison of baseline models
 │   ├── 4_model_optimization_and_ensemble.md  # Hyperparameter tuning, feature validation, and ensembling
-│   └── implementation_plan.md # Copy of the implementation plan
+│   └── 5_implementation_plan.md # Copy of the implementation plan
 └── notebooks/                 # Jupyter notebooks for interactive development
     ├── 01_eda.ipynb           # Exploratory data analysis
     ├── 02_baseline_modeling.ipynb  # Baseline model comparison
-    └── 03_model_tuning_and_ensemble.ipynb # Optimization, feature validation, and blending
+    ├── 03_model_tuning_and_ensemble.ipynb # Optimization, feature validation, and blending
+    └── 04_hyperparameter_tuning.ipynb # Optuna hyperparameter tuning searches
 ```
 
 ---
@@ -59,8 +60,9 @@ We will organize the repository as follows:
 | Phase / Notebook | Purpose & Output |
 | --- | --- |
 | **01_eda.ipynb** | Analyze feature distributions, target class behavior, coordinates mapping, color features, and potential drift. Output: [docs/2_eda_insights.md](file:///Users/tuanm.nguyen/Documents/kaggle-s6e6-predicting-stellar-class/docs/2_eda_insights.md). |
-| **02_baseline_modeling.ipynb** | Setup stratified 5-fold CV. Train baseline LightGBM, XGBoost, and CatBoost models. Output: [docs/3_baseline_modeling.md](file:///Users/tuanm.nguyen/Documents/kaggle-s6e6-predicting-stellar-class/docs/3_baseline_modeling.md). |
-| **03_model_tuning_and_ensemble.ipynb** | Tune hyperparameters, validate engineered features (color indexes, coordinate transforms), blend predictions, calibrate probabilities, and write `submission.csv`. Output: [docs/4_model_optimization_and_ensemble.md](file:///Users/tuanm.nguyen/Documents/kaggle-s6e6-predicting-stellar-class/docs/4_model_optimization_and_ensemble.md). |
+| **02_baseline_modeling.ipynb** | Setup stratified 5-fold CV. Train baseline LightGBM, XGBoost, CatBoost, RandomForest, ExtraTrees, and HistGradientBoosting models. Output: [docs/3_baseline_modeling.md](file:///Users/tuanm.nguyen/Documents/kaggle-s6e6-predicting-stellar-class/docs/3_baseline_modeling.md). |
+| **03_model_tuning_and_ensemble.ipynb** | Stacking meta-learner sweep, validate engineered features (color indexes, coordinate transforms), blend predictions, calibrate probabilities, and write `submission.csv`. Output: [docs/4_model_optimization_and_ensemble.md](file:///Users/tuanm.nguyen/Documents/kaggle-s6e6-predicting-stellar-class/docs/4_model_optimization_and_ensemble.md). |
+| **04_hyperparameter_tuning.ipynb** | Optuna hyperparameter optimization searches on Stratified CV subsets. Output: `best_hyperparameters.json`. |
 
 ---
 
@@ -98,7 +100,8 @@ We will explore and validate the following features:
 ---
 
 ## 7. Next Steps & Action Plan
-1. Create the `docs/` folder and initialize `docs/coding_standards.md` and `docs/1_instructions.md`.
+
+1. Create the `docs/` folder and initialize `docs/0_coding_standards.md` and `docs/1_instructions.md`.
 2. Flesh out the EDA in `notebooks/01_eda.ipynb` using `seaborn` / `matplotlib` with the Viridis palette, and document the insights in `docs/2_eda_insights.md`.
 3. Build the baseline models in `notebooks/02_baseline_modeling.ipynb`, capturing the results in `docs/3_baseline_modeling.md`.
 4. Tune parameters and perform ensembling in `notebooks/03_model_tuning_and_ensemble.ipynb`, producing the final `submission.csv` and documenting it in `docs/4_model_optimization_and_ensemble.md`.

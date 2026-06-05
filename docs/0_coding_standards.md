@@ -6,17 +6,24 @@ This repository balances both local Python module training and Jupyter notebooks
 
 - `notebooks/` for exploratory analysis and interactive experiments.
 - `docs/` for standards, instructions, EDA notes, modeling results, and ensemble summaries.
-- `src/` for clean, reusable production and training logic (e.g. `train.py`).
-- `data/` for local CSV data (git ignored, not to be committed).
+- `scratch/` for helper scripts, credentials management, and local prediction downloads.
 - `README.md` for high-level overview and current champion results.
 
-## 2. Notebook Naming
+## 2. Document Naming & Numbering
 
-Use numbered, stable notebook names describing the workflow phase:
+All files in the `docs/` directory follow a consistent, chronological, and numbered naming scheme:
+- `0_coding_standards.md` — Coding guidelines and repository structure standards.
+- `1_instructions.md` — Competition details, metrics, and Kaggle account management rules.
+- `2_eda_insights.md` — Statistical analysis, redshift physics, and astronomical color indices.
+- `3_baseline_modeling.md` — Setup for stratified 5-fold CV and comparison of tuned GBDT and tree estimators.
+- `4_model_optimization_and_ensemble.md` — Stacking meta-learners sweep, threshold calibration, and hybrid blending.
+- `5_implementation_plan.md` — Strategic roadmap for the competition.
 
-1. `01_eda.ipynb`
-2. `02_baseline_modeling.ipynb`
-3. `03_model_tuning_and_ensemble.ipynb`
+Notebook naming follows a similar numbered structure:
+- `01_eda.ipynb`
+- `02_baseline_modeling.ipynb`
+- `03_model_tuning_and_ensemble.ipynb`
+- `04_hyperparameter_tuning.ipynb`
 
 ## 3. Code Style
 
@@ -50,9 +57,9 @@ def feature_engineering(df: pd.DataFrame) -> pd.DataFrame:
 
 Each notebook should include:
 
-- a short purpose statement at the top;
-- a configuration section near the top for tunable parameters (e.g. `N_SPLITS`, `SEED`, model configs);
-- Markdown insight cells after major plots or metrics;
+- A short purpose statement at the top.
+- A configuration section near the top for tunable parameters (e.g. `N_SPLITS`, `SEED`, model configs).
+- Markdown insight cells after major plots or metrics.
 - Output cell clearing before committing to keep notebooks lightweight.
 
 ## 5. Feature Engineering Standards

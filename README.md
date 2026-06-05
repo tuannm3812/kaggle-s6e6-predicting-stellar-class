@@ -71,3 +71,23 @@ Our 5-fold Stratified Cross-Validation on the training set yields the following 
 * Notebook 3 is configured to directly read the prediction files from:
   `/kaggle/input/notebooks/tuannm3812/stellar-classification-baseline-modeling/predictions`
 * Run Notebook 3 to optimize the ensembling blend weights ($w_{\text{LGB}}, w_{\text{XGB}}, w_{\text{Cat}}$) on OOF predictions (preventing data leakage) and generate the final `submission.csv`.
+
+---
+
+## 🔑 Kaggle Accounts & Submission Quota Management
+
+To maximize our daily submission allowance, the pipeline utilizes two Kaggle accounts:
+
+1. **Secondary Account (`tuannm3823`)**:
+   * **Priority**: Always use this account **first** for running/pushing notebooks and submitting predictions.
+   * **Dataset Mounting Prerequisite**: The ensembling notebook (`03_model_tuning_and_ensemble.ipynb`) blends predictions with `flexonafft/stellar-data`. The account `tuannm3823` must accept the dataset's rules on the Kaggle website. If the dataset is not accepted, `/kaggle/input/stellar-data/external/submissions` will not mount, and the notebook will fall back to local-only models (score: `0.96571` instead of `0.97060`).
+2. **Primary Account (`tuannm3812`)**:
+   * **Fallback**: Use this account as a fallback when the secondary account's daily submission quota is exhausted.
+   * **Access**: This account has verified access to `flexonafft/stellar-data` and mounts it successfully to yield the full ensemble score (`0.97060`).
+
+### Automated Credentials Swapping
+* Local Kaggle API credentials are automatically managed via the backup files:
+  * Primary: `~/.kaggle/kaggle.tuannm3812.current.json`
+  * Secondary: `~/.kaggle/kaggle.tuannm3823.backup.json`
+* The execution script [push_and_submit_notebook_3823.py](file:///Users/tuanm.nguyen/Documents/kaggle-s6e6-predicting-stellar-class/scratch/push_and_submit_notebook_3823.py) swaps files, pushes/executes/polls the kernel, and submits directly using `tuannm3823`. It guarantees the primary `tuannm3812` is restored to `~/.kaggle/kaggle.json` upon completion (via a `finally` block).
+

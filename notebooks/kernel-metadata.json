@@ -1,7 +1,7 @@
 {
-  "id": "tuannm3812/stellar-classification-ensemble-0-97025",
-  "title": "Stellar Classification - Ensemble (0.97025)",
-  "code_file": "03_model_tuning_and_ensemble.ipynb",
+  "id": "tuannm3812/stellar-classification-disagreement-analysis-v1",
+  "title": "stellar-classification-disagreement-analysis-v1",
+  "code_file": "08_disagreement_analysis.ipynb",
   "language": "python",
   "kernel_type": "notebook",
   "is_private": false,

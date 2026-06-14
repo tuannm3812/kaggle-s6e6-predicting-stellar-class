@@ -66,6 +66,39 @@ Our 5-fold Stratified Cross-Validation on the training set yields the following 
 
 ---
 
+## Current Best Submission
+
+The current public leaderboard champion is:
+
+| Submission | Public Score | Notes |
+| :--- | :--- | :--- |
+| `submission_alpha_0.50.csv` | `0.97069` | Best static alpha blend |
+| `submission_alpha_0.45.csv` | `0.97063` | Tight check below champion |
+| `submission_alpha_0.55.csv` | `0.97062` | Tight check below champion |
+| `submission_alpha_0.33.csv` | `0.97047` | Micro-alpha v1, below champion |
+
+The latest checks show that `alpha=0.50` remains the best known submission.
+Micro-alpha v1 and neighboring static alpha candidates did not improve the
+leaderboard score.
+The targeted `close3v2_gs_local_margin_0.00.csv` disagreement router scored
+`0.97025`, so local tie-breaking on close `GALAXY`/`STAR` external splits is
+not a useful direction.
+The active root `submission.csv` is frozen to the `alpha=0.50` champion; see
+`docs/6_submission_manifest.md` for the artifact trace.
+Use notebook runs to reproduce artifacts and diagnostics, then submit CSVs only
+after a quota gate. The quota policy is documented in
+`docs/7_submission_quota_strategy.md`.
+
+### Next Experiment Gate
+
+The next notebook to run is `08_disagreement_analysis.ipynb`. It freezes the
+`alpha=0.50` champion, writes `submission_alpha_0.50.csv` as the default
+submission, and produces row-level diagnostics for the 4,050 external
+disagreement rows. New submissions should only be made after the diagnostics
+identify a specific routing rule or class transition worth testing.
+
+---
+
 ## 🚀 Execution Guide on Kaggle
 
 ### Step 1: Execute Baseline Model
@@ -95,4 +128,3 @@ To maximize our daily submission allowance, the pipeline utilizes two Kaggle acc
   * Primary: `~/.kaggle/kaggle.tuannm3812.current.json`
   * Secondary: `~/.kaggle/kaggle.tuannm3823.backup.json`
 * The execution script [push_and_submit_notebook_3823.py](file:///Users/tuanm.nguyen/Documents/kaggle-s6e6-predicting-stellar-class/scratch/push_and_submit_notebook_3823.py) swaps files, pushes/executes/polls the kernel, and submits directly using `tuannm3823`. It guarantees the primary `tuannm3812` is restored to `~/.kaggle/kaggle.json` upon completion (via a `finally` block).
-

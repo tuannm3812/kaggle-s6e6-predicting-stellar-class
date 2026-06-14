@@ -74,3 +74,49 @@ We ran a local voice weight grid search over candidate values of $\alpha$ to fin
 
 * **Champion Configuration**: Pushing local voice weight $\alpha \in \{0.30, 0.35\}$ resolved the disagreement splits correctly, achieving our **best leaderboard score of 0.97060**.
 * **Notebook Direct Submission**: Run remotely on Kaggle via [push_and_submit_notebook_3823.py](file:///Users/tuanm.nguyen/Documents/kaggle-s6e6-predicting-stellar-class/scratch/push_and_submit_notebook_3823.py) to execute and submit directly as a notebook version.
+
+### Current Leaderboard Status
+
+The latest submitted static alpha sweep supersedes the earlier `0.97060`
+champion. The current best public leaderboard score is:
+
+| Candidate | Public Leaderboard Score | Status |
+| :--- | :--- | :--- |
+| `submission_alpha_0.50.csv` | `0.97069` | Current champion |
+| `submission_alpha_0.45.csv` | `0.97063` | Below champion |
+| `submission_alpha_0.55.csv` | `0.97062` | Below champion |
+| `submission_alpha_0.33.csv` | `0.97047` | Micro-alpha v1, below champion |
+
+The tight check around `alpha=0.50` confirms that the older static
+`alpha=0.50` candidate is still the best known submission. The micro-alpha v1
+direction using the 12-external-submission sweep should not be prioritized
+unless a new routing signal is added.
+
+---
+
+## 5. Next Experiment Gate
+
+The current champion path is frozen at the static 5-external blend with
+`alpha=0.50`. The next step is not another blind alpha sweep. Use
+`notebooks/08_disagreement_analysis.ipynb` to:
+
+1. Recreate `submission_alpha_0.50.csv` and default `submission.csv`.
+2. Isolate the 4,050-row core external-disagreement region.
+3. Compare candidate blends against the champion by row-level prediction diffs.
+4. Export `disagreement_candidate_summary.csv` and `core_disagreement_rows.csv`.
+
+Only submit a new candidate if this diagnostic pass identifies a concrete
+routing rule or class transition that changes a defensible subset of the
+disagreement rows.
+
+### Targeted Router Probe
+
+Notebook 8 produced a close external split candidate:
+
+| Candidate | Rule | Changed Rows | Public Score | Decision |
+| :--- | :--- | ---: | :--- | :--- |
+| `close3v2_gs_local_margin_0.00.csv` | Flip only `GALAXY`/`STAR` rows where the 5 core external submissions split 3-2 and the local stack selects the minority side | 84 | `0.97025` | Reject |
+
+This result is materially below the `alpha=0.50` champion (`0.97069`), so
+using the local stack as a tie-breaker in close `GALAXY`/`STAR` external
+splits should not be pursued further.
